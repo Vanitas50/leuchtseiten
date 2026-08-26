@@ -3,6 +3,8 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/leuchtseiten/',
+  // GitHub Pages serves this from /leuchtseiten/; Vercel serves it from the
+  // domain root and sets VERCEL=1 during its build, so branch on that.
+  base: process.env.VERCEL ? '/' : '/leuchtseiten/',
   plugins: [react()],
 })
