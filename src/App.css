@@ -1,0 +1,75 @@
+.cover {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: radial-gradient(circle at center, #2a231c 0%, #14110d 100%);
+}
+
+.cover h1 {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 500;
+  font-size: 3rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  animation: cover-breathe 4s ease-in-out infinite;
+}
+
+.cover p {
+  font-family: "Caveat", cursive;
+  font-size: 1.4rem;
+  opacity: 0.7;
+}
+
+@keyframes cover-breathe {
+  0%,
+  100% {
+    opacity: 0.92;
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 24px rgba(244, 236, 221, 0.25);
+  }
+}
+
+.scroll-container {
+  position: relative;
+}
+
+.fixed-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100vw;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 35%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+
+.mute-toggle {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  background: transparent;
+  border: 1px solid #f4ecdd66;
+  color: #f4ecdd;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.mute-toggle:hover {
+  border-color: #f4ecdd;
+}

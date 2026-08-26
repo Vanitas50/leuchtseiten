@@ -1,0 +1,27 @@
+/* Self-hosted, OFL-licensed. Downloaded once from Google Fonts -- no
+   runtime CDN request, works offline. Variable fonts: one file covers the
+   whole weight range used via font-weight. */
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/fonts/Fraunces-Variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: italic;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/fonts/Fraunces-Italic.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Caveat";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/Caveat-Variable.woff2") format("woff2");
+}
