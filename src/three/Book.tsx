@@ -6,6 +6,7 @@ import { chapters } from "../content/chapters";
 import { Page, PAGE_WIDTH } from "./Page";
 import { makeShadowTexture } from "./ShadowTexture";
 import { Atmosphere } from "./Atmosphere";
+import { PageStack } from "./PageStack";
 
 // How much world-space vertical extent is always visible, regardless of the
 // canvas's pixel size. An orthographic camera avoids the perspective skew a
@@ -112,6 +113,7 @@ export function Book({ progressRef }: { progressRef: MutableRefObject<number> })
       <ambientLight intensity={0.7} />
       <directionalLight position={[2, 3, 4]} intensity={1.1} color="#ffdcb0" />
       <GroundingShadow />
+      <PageStack progressRef={progressRef} />
       <Atmosphere />
       {chapters.map((chapter, i) => (
         <Page

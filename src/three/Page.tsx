@@ -4,10 +4,11 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import "./PageMaterial";
 import { makePlaceholderTexture } from "./PlaceholderTexture";
+import { getPaperGrainTexture } from "./PaperGrainTexture";
 import type { Chapter } from "../content/chapters";
 
 export const PAGE_WIDTH = 1.6;
-const PAGE_HEIGHT = 2.2;
+export const PAGE_HEIGHT = 2.2;
 
 interface PageProps {
   chapter: Chapter;
@@ -64,6 +65,7 @@ export function Page({ chapter, slice, progressRef, stackOffset }: PageProps) {
       <pageMaterial
         ref={materialRef}
         uMap={texture}
+        uGrain={getPaperGrainTexture()}
         uPageWidth={PAGE_WIDTH}
         side={THREE.DoubleSide}
       />
