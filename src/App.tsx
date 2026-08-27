@@ -12,10 +12,14 @@ function App() {
   useEffect(() => {
     // Warm the module cache while the visitor is still reading the cover, so
     // the heavy bundle is likely already fetched by the time they click.
-    const idle = requestIdleCallback?.(() => void import("./BookScreen"));
-    return () => {
-      if (idle !== undefined) cancelIdleCallback?.(idle);
-    };
+    // Safari (iOS and macOS) has never implemented requestIdleCallback --
+    // referencing it unguarded throws a ReferenceError there and crashes the
+    // whole page, so feature-detect via typeof (which never throws) first.
+    if (typeof requestIdleCallback === "function") {
+      const idle = requestIdleCallback(() => void import("./BookScreen"));
+      return () => cancelIdleCallback(idle);
+    }
+    void import("./BookScreen");
   }, []);
 
   if (!started) {
