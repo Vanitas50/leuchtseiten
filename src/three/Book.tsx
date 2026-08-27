@@ -15,6 +15,14 @@ import { PageStack } from "./PageStack";
 // mid-turn).
 const VISIBLE_WORLD_HEIGHT = 3.2;
 
+// The widest the book ever gets is a full two-page spread (the spine at the
+// center, one page extending PAGE_WIDTH to either side) plus a little
+// breathing room. On a narrow mobile portrait screen, fitting purely to
+// height (as if every screen were landscape-ish) would run past the edges
+// of a phone and clip the spread -- so the camera must respect whichever
+// constraint (height or width) is tighter for the current screen shape.
+const REQUIRED_WORLD_WIDTH = PAGE_WIDTH * 2 + 0.3;
+
 function FitOrthoCamera() {
   const camera = useThree((state) => state.camera as THREE.OrthographicCamera);
   const size = useThree((state) => state.size);
@@ -25,7 +33,9 @@ function FitOrthoCamera() {
   // zoom=1 (the book shrinks to a near-invisible speck) and only self-heals
   // on the next animation frame.
   useLayoutEffect(() => {
-    camera.zoom = size.height / VISIBLE_WORLD_HEIGHT;
+    const heightZoom = size.height / VISIBLE_WORLD_HEIGHT;
+    const widthZoom = size.width / REQUIRED_WORLD_WIDTH;
+    camera.zoom = Math.min(heightZoom, widthZoom);
     camera.updateProjectionMatrix();
     invalidate();
   }, [camera, size, invalidate]);
@@ -99,6 +109,11 @@ export function Book({ progressRef }: { progressRef: MutableRefObject<number> })
     <Canvas
       orthographic
       camera={{ position: [0, 0, 10], near: 0.1, far: 50 }}
+      // Phones commonly report a devicePixelRatio of 3+; rendering at full
+      // native resolution there is a lot of wasted GPU work (and battery)
+      // for a visual difference nobody will see. Capping at 2 keeps things
+      // sharp while staying smooth on mid-range hardware.
+      dpr={[1, 2]}
       // We have no interactive meshes (no onClick/onPointerOver), but R3F's
       // event manager still attaches pointer listeners to the canvas by
       // default. A canvas covering the full viewport can swallow the touch

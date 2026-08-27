@@ -42,7 +42,7 @@ export default function BookScreen() {
     <div
       ref={scrollContainerRef}
       className="scroll-container"
-      style={{ height: `${chapters.length * 100}vh` }}
+      style={{ height: `${chapters.length * 100}dvh` }}
     >
       <div className="fixed-stage">
         <Book progressRef={progressRef} />
