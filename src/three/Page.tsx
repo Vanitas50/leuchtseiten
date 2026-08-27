@@ -6,7 +6,7 @@ import "./PageMaterial";
 import { makePlaceholderTexture } from "./PlaceholderTexture";
 import type { Chapter } from "../content/chapters";
 
-const PAGE_WIDTH = 1.6;
+export const PAGE_WIDTH = 1.6;
 const PAGE_HEIGHT = 2.2;
 
 interface PageProps {

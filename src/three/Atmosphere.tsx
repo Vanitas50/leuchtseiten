@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { makeParticleTexture } from "./ParticleTexture";
 
@@ -44,49 +44,9 @@ function DustMotes() {
   );
 }
 
-// Tiny, deliberately subtle camera nudge that follows the pointer -- gives
-// the scene a sense of depth without ever being disorienting.
-function MouseParallax() {
-  const camera = useThree((state) => state.camera);
-  const target = useRef({ x: 0, y: 0 });
-  const basePosition = useRef<{ x: number; y: number } | null>(null);
-
-  useEffect(() => {
-    if (basePosition.current === null) {
-      basePosition.current = { x: camera.position.x, y: camera.position.y };
-    }
-    const handlePointerMove = (event: PointerEvent) => {
-      const nx = (event.clientX / window.innerWidth) * 2 - 1;
-      const ny = (event.clientY / window.innerHeight) * 2 - 1;
-      target.current.x = nx * 0.12;
-      target.current.y = -ny * 0.08;
-    };
-    window.addEventListener("pointermove", handlePointerMove);
-    return () => window.removeEventListener("pointermove", handlePointerMove);
-  }, [camera]);
-
-  useFrame(() => {
-    if (!basePosition.current) return;
-    camera.position.x = THREE.MathUtils.lerp(
-      camera.position.x,
-      basePosition.current.x + target.current.x,
-      0.04
-    );
-    camera.position.y = THREE.MathUtils.lerp(
-      camera.position.y,
-      basePosition.current.y + target.current.y,
-      0.04
-    );
-  });
-
-  return null;
-}
-
+// Mouse parallax lives in Book.tsx's CameraRig -- it also owns the
+// book-centering offset, and both need to drive the same camera.position.x
+// without fighting each other.
 export function Atmosphere() {
-  return (
-    <>
-      <DustMotes />
-      <MouseParallax />
-    </>
-  );
+  return <DustMotes />;
 }
