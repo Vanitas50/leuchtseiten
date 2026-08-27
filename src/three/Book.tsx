@@ -14,33 +14,20 @@ import { PageStack } from "./PageStack";
 // from the optical center (it otherwise looks like the book slides off-frame
 // mid-turn).
 const VISIBLE_WORLD_HEIGHT = 3.2;
+const WIDTH_MARGIN = 0.3;
 
-// The widest the book ever gets is a full two-page spread (the spine at the
-// center, one page extending PAGE_WIDTH to either side) plus a little
-// breathing room. On a narrow mobile portrait screen, fitting purely to
-// height (as if every screen were landscape-ish) would run past the edges
-// of a phone and clip the spread -- so the camera must respect whichever
-// constraint (height or width) is tighter for the current screen shape.
-const REQUIRED_WORLD_WIDTH = PAGE_WIDTH * 2 + 0.3;
-
-function FitOrthoCamera() {
-  const camera = useThree((state) => state.camera as THREE.OrthographicCamera);
-  const size = useThree((state) => state.size);
-  const invalidate = useThree((state) => state.invalidate);
-
-  // useLayoutEffect (not useEffect) so the zoom is correct *before* R3F's
-  // first render fires -- otherwise that first frame renders at the default
-  // zoom=1 (the book shrinks to a near-invisible speck) and only self-heals
-  // on the next animation frame.
-  useLayoutEffect(() => {
-    const heightZoom = size.height / VISIBLE_WORLD_HEIGHT;
-    const widthZoom = size.width / REQUIRED_WORLD_WIDTH;
-    camera.zoom = Math.min(heightZoom, widthZoom);
-    camera.updateProjectionMatrix();
-    invalidate();
-  }, [camera, size, invalidate]);
-
-  return null;
+// How much horizontal room the book actually needs right now: just one
+// page's width at rest (closed, or fully turned at the very end), growing
+// to a full two-page spread while pages are actively being turned. Using a
+// *dynamic* width here (rather than always reserving room for the widest
+// possible spread) is what lets the book fill a narrow phone screen while
+// closed instead of sitting tiny in the middle with dead space on both
+// sides -- the zoom only pulls back when the spread genuinely needs it.
+function currentRequiredWidth(progress: number) {
+  const n = chapters.length;
+  const openingLocal = THREE.MathUtils.clamp(progress * n, 0, 1);
+  const closingLocal = THREE.MathUtils.clamp((progress - (n - 1) / n) * n, 0, 1);
+  return PAGE_WIDTH + PAGE_WIDTH * openingLocal - PAGE_WIDTH * closingLocal;
 }
 
 // A closed book only shows one page, which sits to the right of the spine
@@ -48,18 +35,29 @@ function FitOrthoCamera() {
 // reads as jarringly off-center. This recenters on that single page at the
 // very start and very end (the only times just one page is showing) and
 // glides back to 0 -- true spine-center -- for the two-page spread that's
-// on screen the rest of the time. Mouse parallax rides on top of the same
-// camera, so it lives here too instead of fighting a separate controller.
+// on screen the rest of the time. Zoom is handled here too (rather than a
+// separate static fit-to-height component) since it needs the same
+// progress-aware "how much width is needed right now" logic as centering
+// does, and both write to the same camera every frame.
 function CameraRig({ progressRef }: { progressRef: MutableRefObject<number> }) {
-  const camera = useThree((state) => state.camera);
+  const camera = useThree((state) => state.camera as THREE.OrthographicCamera);
+  const size = useThree((state) => state.size);
+  const invalidate = useThree((state) => state.invalidate);
   const mouseTarget = useRef({ x: 0, y: 0 });
 
-  // Set the starting position before the first paint (see FitOrthoCamera
-  // above for why useLayoutEffect matters here) so the book opens already
-  // centered instead of popping in from x=0 over the first few frames.
+  // Correct position *and* zoom before the first paint (useLayoutEffect,
+  // not useEffect) -- otherwise the first frame renders at the default
+  // zoom=1 (a near-invisible speck) and/or un-centered, popping into place
+  // over the next few frames instead of opening already correct.
   useLayoutEffect(() => {
     camera.position.x = PAGE_WIDTH / 2;
-  }, [camera]);
+    const heightZoom = size.height / VISIBLE_WORLD_HEIGHT;
+    const widthZoom = size.width / (currentRequiredWidth(progressRef.current) + WIDTH_MARGIN);
+    camera.zoom = Math.min(heightZoom, widthZoom);
+    camera.updateProjectionMatrix();
+    invalidate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [camera, size, invalidate]);
 
   useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
@@ -87,6 +85,20 @@ function CameraRig({ progressRef }: { progressRef: MutableRefObject<number> }) {
 
     camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.08);
     camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.08);
+
+    const heightZoom = size.height / VISIBLE_WORLD_HEIGHT;
+    const widthZoom = size.width / (currentRequiredWidth(p) + WIDTH_MARGIN);
+    const targetZoom = Math.min(heightZoom, widthZoom);
+    // Asymmetric easing: zooming *out* (content needs more room) has to
+    // keep up with a fast flick-scroll or the spread clips off the edge of
+    // the screen for a frame or two, so that direction snaps quickly.
+    // Zooming back *in* is never at risk of clipping anything, so it can
+    // ease slowly for a calmer feel.
+    const zoomLerp = targetZoom < camera.zoom ? 0.35 : 0.06;
+    if (Math.abs(camera.zoom - targetZoom) > 0.01) {
+      camera.zoom = THREE.MathUtils.lerp(camera.zoom, targetZoom, zoomLerp);
+      camera.updateProjectionMatrix();
+    }
   });
 
   return null;
@@ -123,7 +135,6 @@ export function Book({ progressRef }: { progressRef: MutableRefObject<number> })
       events={() => ({ enabled: false, priority: 0 })}
     >
       <color attach="background" args={["#14100c"]} />
-      <FitOrthoCamera />
       <CameraRig progressRef={progressRef} />
       <ambientLight intensity={0.7} />
       <directionalLight position={[2, 3, 4]} intensity={1.1} color="#ffdcb0" />
