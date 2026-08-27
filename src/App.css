@@ -73,3 +73,36 @@
 .mute-toggle:hover {
   border-color: #f4ecdd;
 }
+
+.scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #f4ecddcc;
+  font-family: "Caveat", cursive;
+  font-size: 1.2rem;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+.scroll-hint-arrow {
+  font-size: 1.3rem;
+  animation: scroll-hint-bounce 1.8s ease-in-out infinite;
+}
+
+@keyframes scroll-hint-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+}
