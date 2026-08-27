@@ -95,7 +95,17 @@ export function Book({ progressRef }: { progressRef: MutableRefObject<number> })
   const slice = 1 / chapters.length;
 
   return (
-    <Canvas orthographic camera={{ position: [0, 0, 10], near: 0.1, far: 50 }}>
+    <Canvas
+      orthographic
+      camera={{ position: [0, 0, 10], near: 0.1, far: 50 }}
+      // We have no interactive meshes (no onClick/onPointerOver), but R3F's
+      // event manager still attaches pointer listeners to the canvas by
+      // default. A canvas covering the full viewport can swallow the touch
+      // gesture that would otherwise scroll the page -- explicitly allow
+      // vertical panning so touch-scrolling on mobile keeps working.
+      style={{ touchAction: "pan-y" }}
+      events={() => ({ enabled: false, priority: 0 })}
+    >
       <color attach="background" args={["#14100c"]} />
       <FitOrthoCamera />
       <CameraRig progressRef={progressRef} />
